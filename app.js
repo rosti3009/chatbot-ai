@@ -25,9 +25,8 @@ async function loadSitemap() {
 
     let allUrls = [];
 
-    // אם זה אינדקס מפות (sitemapindex)
+    // אינדקס מפות
     if (result.sitemapindex && result.sitemapindex.sitemap) {
-      // טען כל sitemap משני
       for (const sm of result.sitemapindex.sitemap) {
         if (sm.loc && sm.loc[0]) {
           try {
@@ -46,9 +45,7 @@ async function loadSitemap() {
           }
         }
       }
-    }
-    // או urlset רגיל
-    else if (result.urlset && result.urlset.url) {
+    } else if (result.urlset && result.urlset.url) {
       allUrls = result.urlset.url.map(u => u.loc[0]);
     }
 
@@ -71,32 +68,59 @@ async function loadSitemap() {
 loadSitemap();
 setInterval(loadSitemap, 6 * 60 * 60 * 1000);
 
-// -- פונקציית חיפוש חכמה --
+// -- פונקציית בינה אנושית משודרגת --
 function findBestMatch(userMsg) {
-  const msg = userMsg.toLowerCase();
+  const msg = userMsg.toLowerCase().trim();
 
-  if (msg.includes('מבצע') || msg.includes('sale')) {
-    return `מחפש מבצעים? הנה כל הדילים באתר: <a href="https://compassgrill.co.il/sale/" target="_blank">https://compassgrill.co.il/sale/</a>`;
+  // ברכות/פנייה אישית
+  const greetings = [
+    "שלום", "היי", "הי", "hi", "hello", "ערב טוב", "בוקר טוב", "צהריים טובים",
+    "מה נשמע", "מה קורה", "מה שלומך", "מה העניינים", "הכל טוב", "מה המצב", "תודה"
+  ];
+  if (greetings.some(greet => msg.includes(greet))) {
+    return "שלום! 😊 כאן COMPASSBOT של קומפס גריל. אשמח לעזור עם כל שאלה על מוצרים, מבצעים או המלצה אישית!";
   }
-  if (msg.match(/(\d+)\s*להבות/)) {
-    return `רוצה גריל לפי מספר להבות? ראה כאן: <a href="https://compassgrill.co.il/product-category/gas-grills/" target="_blank">גרילי גז</a>`;
+
+  // מי אתה/מה אתה
+  if (msg.includes("בוט") || msg.includes("מי אתה") || msg.includes("מה אתה") || msg.includes("צ'אט") || msg.includes("האם אתה אמיתי")) {
+    return "אני הבוט החכם של קומפס גריל – נותן ייעוץ ומידע אמיתי על כל מה שיש אצלנו באתר. שאל אותי על מוצרים, מבצעים, גרילים, בשרים, מתכונים ועוד!";
   }
-  if (msg.match(/(משפחה|קטן|גדול|ליחיד)/)) {
-    return `מחפש מוצר לפי גודל? ממליץ להסתכל על כל סוגי הגרילים, ניתן לסנן לפי גודל באתר: <a href="https://compassgrill.co.il/product-category/gas-grills/" target="_blank">גרילים</a>`;
+
+  // שאלה כללית לעזרה
+  if (msg.includes("עזרה") || msg.includes("צריך עזרה") || msg.includes("ממליץ") || msg.includes("מומלץ") || msg.includes("איזה לקנות") || msg.includes("מה כדאי")) {
+    return `אשמח להמליץ! אפשר לשאול לפי קטגוריה (גריל, בשר, אביזרים), לפי תקציב, או לפי גודל (משפחה/יחיד). רוצה לראות מבצעים? <a href="https://compassgrill.co.il/sale/" target="_blank">לחץ כאן</a>, או תספר לי מה מעניין אותך!`;
+  }
+
+  // שאלות שכיחות — לוגיקה חכמה (משפחה/תקציב/שימוש)
+  if (msg.includes('משפחה') || msg.includes('גדול')) {
+    return `מחפש גריל למשפחה? ממליץ על גרילי גז 4–6 להבות. ראה מגוון כאן: <a href="https://compassgrill.co.il/product-category/gas-grills/" target="_blank">גרילים למשפחה</a>. אפשר לסנן לפי גודל ותקציב.`;
+  }
+  if (msg.includes('יחיד') || msg.includes('קטן') || msg.includes('קומפקטי')) {
+    return `צריך גריל קטן או קומפקטי? יש לנו גם דגמים מצוינים ליחיד או למרפסת קטנה: <a href="https://compassgrill.co.il/product-category/gas-grills/" target="_blank">גרילים קטנים</a>.`;
+  }
+  if (msg.includes('תקציב')) {
+    return `לכל תקציב יש פתרון! אם תגיד מה התקציב, אמליץ לך על דגמים מומלצים.`;
   }
   if (msg.includes('אביזר') || msg.includes('אביזרים')) {
-    return `מגוון אביזרים לגריל — ראה כאן: <a href="https://compassgrill.co.il/product-category/accessories/" target="_blank">אביזרים</a>`;
+    return `מחפש אביזרים לגריל? ראה את כל האביזרים כאן: <a href="https://compassgrill.co.il/product-category/accessories/" target="_blank">אביזרים</a>.`;
   }
   if (msg.includes('בשר') || msg.includes('בקר')) {
-    return `לכל מוצרי הבשר: <a href="https://compassgrill.co.il/product-category/beef/" target="_blank">בשר בקר</a>`;
+    return `רוצה להזמין בשר? כל מוצרי הבשר שלנו כאן: <a href="https://compassgrill.co.il/product-category/beef/" target="_blank">בשר בקר</a>.`;
   }
   if (msg.includes('עוף') || msg.includes('פרגית')) {
-    return `למוצרי העוף: <a href="https://compassgrill.co.il/product-category/chicken/" target="_blank">עוף ופרגיות</a>`;
+    return `רוצה להזמין עוף? עיין בכל מוצרי העוף והפרגית שלנו: <a href="https://compassgrill.co.il/product-category/chicken/" target="_blank">עוף ופרגיות</a>.`;
   }
-  if (msg.includes('בלוג') || msg.includes('מתכון')) {
-    return `לטיפים ומתכונים: <a href="https://compassgrill.co.il/blog/" target="_blank">בלוג מתכונים וטיפים</a>`;
+  if (msg.includes('מבצע') || msg.includes('sale')) {
+    return `רוצה מבצעים? ראה כאן: <a href="https://compassgrill.co.il/sale/" target="_blank">מבצעי החודש</a>.`;
+  }
+  if (msg.match(/(\d+)\s*להבות/)) {
+    return `מחפש גריל לפי מספר להבות? ראה כאן: <a href="https://compassgrill.co.il/product-category/gas-grills/" target="_blank">גרילי גז</a>.`;
+  }
+  if (msg.includes('מתכון') || msg.includes('בלוג') || msg.includes('טיפ')) {
+    return `רוצה מתכונים וטיפים? כנס לבלוג שלנו: <a href="https://compassgrill.co.il/blog/" target="_blank">בלוג מתכונים וטיפים</a>.`;
   }
 
+  // חיפוש במפת האתר ע"פ מילים
   let scored = indexedData.map(item => {
     let score = 0;
     for (let word of msg.split(' ')) {
@@ -111,10 +135,11 @@ function findBestMatch(userMsg) {
   if (scored.length) {
     scored.sort((a, b) => b.score - a.score);
     const best = scored[0];
-    return `מצאתי משהו שיכול להתאים: <a href="${best.url}" target="_blank">${best.label}</a>`;
+    return `מצאתי מוצר/עמוד שיכול להתאים למה שחיפשת: <a href="${best.url}" target="_blank">${best.label}</a>`;
   }
 
-  return null;
+  // ברירת מחדל – מענה אנושי
+  return "לא הצלחתי להבין בדיוק למה אתה מתכוון. אשמח לעזור! תוכל לכתוב לי מה התקציב, איזה מוצר אתה מחפש, או אם יש משהו מסוים באתר שעניין אותך? 😊";
 }
 
 // -- מסלול הצ'אט --
@@ -122,11 +147,7 @@ app.post('/chat', async (req, res) => {
   const userMessage = req.body.message;
 
   const answer = findBestMatch(userMessage);
-  if (answer) {
-    return res.json({ reply: `😊 ${answer}` });
-  } else {
-    return res.json({ reply: "מצטער, לא מצאתי מוצר מתאים באתר שלנו. אשמח לעזור לך לבחור אם תפרט מה התקציב, למה זה מיועד, או איזה מוצר חיפשת." });
-  }
+  res.json({ reply: answer });
 });
 
 app.listen(port, () => {
