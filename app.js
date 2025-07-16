@@ -1,3 +1,5 @@
+require('dotenv').config(); // מוסיף את משתני הסביבה מקובץ .env
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -5,15 +7,15 @@ const app = express();
 const port = 3000;
 
 app.use(bodyParser.json());
-app.use(express.static('public')); // קבצי האתר
+app.use(express.static('public'));
 
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.message;
-  const apiKey = process.env.OPENAI_API_KEY; // נקרא מהסביבה ב-Render
+  const apiKey = process.env.OPENAI_API_KEY; // נשלף מהסביבה/קובץ .env
 
   if (!apiKey) {
-    console.error("API KEY לא מוגדר ב-Environment!");
-    return res.status(500).json({ error: "לא מוגדר מפתח API בשרת. בדוק את Render Environment Variables." });
+    console.error("לא מוגדר OPENAI_API_KEY בקובץ .env או ב־Environment.");
+    return res.status(500).json({ error: "מפתח API לא מוגדר בשרת." });
   }
 
   try {
@@ -36,10 +38,6 @@ app.post('/chat', async (req, res) => {
       }
     );
 
-    // לוג לבדיקת תשובה מה-API
-    console.log('OpenAI Response:', JSON.stringify(response.data));
-
-    // בדוק שהתשובה קיימת
     if (
       response.data &&
       response.data.choices &&
@@ -49,12 +47,10 @@ app.post('/chat', async (req, res) => {
     ) {
       res.json({ reply: response.data.choices[0].message.content });
     } else {
-      // טיפול במקרה שאין תשובה תקינה
-      console.error('No reply from OpenAI!', response.data);
+      console.error('לא התקבלה תשובה תקינה מ-OpenAI:', response.data);
       res.json({ reply: "מצטער, לא הצלחתי לקבל תשובה. נסה שוב או פנה לשירות." });
     }
   } catch (err) {
-    // לוג שגיאה מפורט
     if (err.response) {
       console.error('OpenAI API Error:', err.response.data);
       res.status(500).json({
